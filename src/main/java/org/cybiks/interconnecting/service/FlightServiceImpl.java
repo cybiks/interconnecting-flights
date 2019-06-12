@@ -57,8 +57,8 @@ public class FlightServiceImpl implements FlightService {
         List<String> from = (List<String>) airportsConnectionsAB.get(departureAirport);
 
         List<String> to = (List<String>) airportsConnectionsBA.get(arrivalAirport);
-        log.info("From %s: %s", departureAirport, from);
-        log.info("To %s: %s ", arrivalAirport, to);
+        log.info("From {}: {}", departureAirport, from);
+        log.info("To {}: {} ", arrivalAirport, to);
         from.retainAll(to);
         log.info("intersections : " + from);
         return from;
@@ -74,7 +74,7 @@ public class FlightServiceImpl implements FlightService {
             schedule = restTemplate.getForObject(request, Schedule.class);
             log.info("schedule : " + schedule);
         } catch (org.springframework.web.client.HttpClientErrorException ex) {
-            log.error("Request: %s return HttpClientErrorException", request);
+            log.error("Request: {} return HttpClientErrorException", request);
             schedule = null;
         }
         return schedule;

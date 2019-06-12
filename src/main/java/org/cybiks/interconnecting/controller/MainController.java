@@ -1,6 +1,7 @@
 package org.cybiks.interconnecting.controller;
 
 import org.cybiks.interconnecting.service.FlightService;
+import org.cybiks.interconnecting.timezone.TimeZoneIATAMapper;
 import org.cybiks.interconnecting.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +24,16 @@ public class MainController {
 
     private FlightService flightService;
 
+    private TimeZoneIATAMapper timeZoneIATAMapper;
+
     @Autowired
     public void setFlightService(FlightService flightService) {
         this.flightService = flightService;
+    }
+
+    @Autowired
+    public void setTimeZoneIATAMapper(TimeZoneIATAMapper timeZoneIATAMapper) {
+        this.timeZoneIATAMapper = timeZoneIATAMapper;
     }
 
     //for example: http://localhost:8080/somevalidcontext/interconnections?departure=DUB&arrival=WRO&departureDateTime=2018-03-01T07:00&arrivalDateTime=2018-03-03T21:00
@@ -84,8 +92,8 @@ public class MainController {
             if ((scheduleDay.getDay() >= (departureDateTime.getDayOfMonth())) && (scheduleDay.getDay() <= (arrivalDateTime.getDayOfMonth()))) {
                 List<Flight> scheduleFlights = scheduleDay.getFlights();
                 for (Flight flight : scheduleFlights) {
-                    ZonedDateTime departureZonedDateTime = getDateTime(flight.getDepartureTime(), departureDateTime, false);
-                    ZonedDateTime arrivalZonedDateTime = getDateTime(flight.getArrivalTime(), departureDateTime, true);
+                    ZonedDateTime departureZonedDateTime = getDateTime(departure, departureDateTime.getYear(), departureDateTime.getMonthValue(), departureDateTime.getDayOfMonth(), flight.getDepartureTime(), false);
+                    ZonedDateTime arrivalZonedDateTime = getDateTime(arrival, arrivalDateTime.getYear(), arrivalDateTime.getMonthValue(), arrivalDateTime.getDayOfMonth(), flight.getArrivalTime(), true);
                     if (departureTotalDateTime.isBefore(departureZonedDateTime) && arrivalTotalDateTime.isAfter(arrivalZonedDateTime)) {
                         legs.add(new Leg(departure, arrival, departureZonedDateTime.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime(), arrivalZonedDateTime.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime()));
                     }
@@ -95,14 +103,16 @@ public class MainController {
         return legs;
     }
 
-    private ZonedDateTime getDateTime(String aiportTime, LocalDateTime departureDateTime, boolean isArrival) {
-        LocalTime lt = LocalTime.parse(aiportTime);
-        LocalDate ld = LocalDate.of(departureDateTime.getYear(), departureDateTime.getMonthValue(), departureDateTime.getDayOfMonth());
+    private ZonedDateTime getDateTime(String aiport, int year, int month, int dayOfMonth, String airportTime, boolean isArrival) {
+        LocalDate ld = LocalDate.of(year, month, dayOfMonth);
+        LocalTime lt = LocalTime.parse(airportTime);
         if (isArrival && lt.getHour() == 0) {
             ld = ld.plusDays(1);
         }
         LocalDateTime ldt = LocalDateTime.of(ld, lt);
 
-        return ZonedDateTime.of(ldt, ZoneId.of("Europe/Paris"));
+        String timeZoneID = timeZoneIATAMapper.findTimeZoneID(aiport);
+        log.info("TimeZone for airport {} is {} ", aiport, timeZoneID);
+        return ZonedDateTime.of(ldt, ZoneId.of(timeZoneID));
     }
 }
