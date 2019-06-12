@@ -2,11 +2,11 @@ package org.cybiks.interconnecting.vo;
 
 import java.util.List;
 
-public class Result {
+public class FlightResult {
     private Integer stops;
     private List<Leg> legs;
 
-    public Result(Integer stops, List<Leg> legs) {
+    public FlightResult(Integer stops, List<Leg> legs) {
         this.stops = stops;
         this.legs = legs;
     }
@@ -25,5 +25,13 @@ public class Result {
 
     public void setLegs(List<Leg> legs) {
         this.legs = legs;
+    }
+
+    @Override
+    public String toString() {
+        return "FlightResult{" +
+                "stops=" + stops +
+                ", legs=" + legs +
+                '}';
     }
 }

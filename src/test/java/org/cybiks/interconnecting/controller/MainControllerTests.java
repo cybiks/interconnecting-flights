@@ -22,10 +22,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -35,20 +37,44 @@ public class MainControllerTests {
     @Autowired
     private MockMvc mockMvc;
 
-
-    ////for example: http://localhost:8080/cybiks/interconnections?departure=DUB&arrival=WRO&departureDateTime=2019-06-12T00:00&arrivalDateTime=2019-06-12T23:00
+    ////for instance: http://localhost:8080/cybiks/interconnections?departure=DUB&arrival=WRO&departureDateTime=2019-06-12T00:00&arrivalDateTime=2019-06-12T23:00
     @Test
-    public void paramGreetingShouldReturnTailoredMessage() throws Exception {
+    public void oneDayTest() throws Exception {
 
-        ResultActions resultActions = this.mockMvc.perform(get("/interconnections").param("departure", "DUB")
+        this.mockMvc.perform(get("/interconnections")
+                .param("departure", "DUB")
                 .param("arrival", "WRO")
                 .param("departureDateTime", "2019-06-12T00:00")
-                .param("arrivalDateTime", "2019-06-12T23:00")).andDo(print());
-//                .andDo(print()).andExpect(status().isOk());
-//                .andExpect(jsonPath("$.departure").value("DUB"))
-//                .andExpect(jsonPath("$.arrival").value("WRO"))
-//                .andExpect(jsonPath("$.departureDateTime").value("2019-06-12T07:00:00"))
-//                .andExpect(jsonPath("$.arrivalDateTime").value("2019-06-12T21:00:00"));
+                .param("arrivalDateTime", "2019-06-12T23:00")).andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].stops").value("0"))
+                .andExpect(jsonPath("$[0].legs[0].departureAirport").value("DUB"))
+                .andExpect(jsonPath("$[0].legs[0].arrivalAirport").value("WRO"))
+                .andExpect(jsonPath("$[0].legs[0].departureDateTime").value("2019-06-12T16:50:00"))
+                .andExpect(jsonPath("$[0].legs[0].arrivalDateTime").value("2019-06-12T19:25:00"));
+    }
+
+    @Test
+    public void oneDayTestFromPDF() throws Exception {
+
+        this.mockMvc.perform(get("/interconnections")
+                .param("departure", "DUB")
+                .param("arrival", "WRO")
+                .param("departureDateTime", "2018-03-12T07:00")
+                .param("arrivalDateTime", "2018-03-03T21:00")).andDo(print())
+                .andExpect(status().isOk());
+    }
+
+
+    @Test
+    public void coupleDaysTest() throws Exception {
+
+        this.mockMvc.perform(get("/interconnections")
+                .param("departure", "DUB")
+                .param("arrival", "WRO")
+                .param("departureDateTime", "2019-06-12T00:00")
+                .param("arrivalDateTime", "2019-06-15T23:00"))
+                .andDo(print()).andExpect(status().isOk());
     }
 
 }
