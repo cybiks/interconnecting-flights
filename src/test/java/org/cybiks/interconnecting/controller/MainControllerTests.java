@@ -36,11 +36,11 @@ public class MainControllerTests {
     private MockMvc mockMvc;
 
 
-    ////for example: http://localhost:8080/greeting/interconnections?departure=DUB&arrival=WRO&departureDateTime=2018-03-01T07:00&arrivalDateTime=2018-03-03T21:00
+    ////for example: http://localhost:8080/cybiks/interconnections?departure=DUB&arrival=WRO&departureDateTime=2019-06-12T00:00&arrivalDateTime=2019-06-12T23:00
     @Test
     public void paramGreetingShouldReturnTailoredMessage() throws Exception {
 
-        ResultActions resultActions = this.mockMvc.perform(get("/greeting/interconnections").param("departure", "DUB")
+        ResultActions resultActions = this.mockMvc.perform(get("/interconnections").param("departure", "DUB")
                 .param("arrival", "WRO")
                 .param("departureDateTime", "2019-06-12T00:00")
                 .param("arrivalDateTime", "2019-06-12T23:00")).andDo(print());

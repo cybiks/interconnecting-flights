@@ -37,8 +37,8 @@ public class MainController {
     }
 
     //for example: http://localhost:8080/somevalidcontext/interconnections?departure=DUB&arrival=WRO&departureDateTime=2018-03-01T07:00&arrivalDateTime=2018-03-03T21:00
-    //for example: http://localhost:8080/greeting/interconnections?departure=DUB&arrival=WRO&departureDateTime=2018-03-01T07:00&arrivalDateTime=2018-03-03T21:00
-    @RequestMapping("/greeting/interconnections")
+    //for example: http://localhost:8080/cybiks/interconnections?departure=DUB&arrival=WRO&departureDateTime=2019-06-12T00:00&arrivalDateTime=2019-06-12T23:00
+    @RequestMapping("/interconnections")
     public List<Result> greeting(@RequestParam(value = "departure") String departure,
                                  @RequestParam(value = "arrival") String arrival,
                                  @RequestParam("departureDateTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime departureDateTime,
