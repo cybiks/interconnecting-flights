@@ -117,8 +117,9 @@ public class FlightServiceImpl implements FlightService {
                 if ((scheduleDay.getDay() >= (departureDateTime.getDayOfMonth())) && (scheduleDay.getDay() <= (arrivalDateTime.getDayOfMonth()))) {
                     List<Flight> scheduleFlights = scheduleDay.getFlights();
                     for (Flight flight : scheduleFlights) {
-                        ZonedDateTime departureZonedDateTime = getDateTime(departure, departureDateTime.getYear(), schedule.getMonth(), scheduleDay.getDay(), flight.getDepartureTime(), false);
-                        ZonedDateTime arrivalZonedDateTime = getDateTime(arrival, arrivalDateTime.getYear(), schedule.getMonth(), scheduleDay.getDay(), flight.getArrivalTime(), true);
+                        ZonedDateTime departureZonedDateTime = getDateTime(departure, departureDateTime.getYear(), schedule.getMonth(), scheduleDay.getDay(), flight.getDepartureTime());
+                        ZonedDateTime arrivalZonedDateTime = getDateTime(arrival, arrivalDateTime.getYear(), schedule.getMonth(), scheduleDay.getDay(), flight.getArrivalTime());
+                        arrivalZonedDateTime = updateNightFlights(flight, departure, arrival, departureZonedDateTime, arrivalZonedDateTime);
                         if (departureTotalDateTime.isBefore(departureZonedDateTime) && arrivalTotalDateTime.isAfter(arrivalZonedDateTime)) {
                             legs.add(new Leg(departure, arrival, departureZonedDateTime.withZoneSameInstant(utc).toLocalDateTime(), arrivalZonedDateTime.withZoneSameInstant(utc).toLocalDateTime()));
                         }
@@ -129,14 +130,30 @@ public class FlightServiceImpl implements FlightService {
         return legs;
     }
 
-    private ZonedDateTime getDateTime(String aiport, int year, int month, int dayOfMonth, String airportTime, boolean isArrival) {
+    /**
+     * To avoid Flight{number='8939', departureTime='22:10', arrivalTime='00:05'} examples. 00:05 means starts of new day in local time zone.
+     */
+    private ZonedDateTime updateNightFlights(Flight flight, String departure, String arrival, ZonedDateTime departureZonedDateTime, ZonedDateTime arrivalZonedDateTime) {
+        if (departureZonedDateTime.isAfter(arrivalZonedDateTime)) {
+            log.debug("departureZonedDateTime.isAfter(arrivalZonedDateTime) " +
+                    "\n departure: {}" +
+                    "\n arrival {}" +
+                    "\n departureZonedDateTime {}" +
+                    "\n arrivalZonedDateTime {}", departure, arrival, departureZonedDateTime, arrivalZonedDateTime);
+            log.debug(flight.toString());
+            arrivalZonedDateTime = arrivalZonedDateTime.plusDays(1);
+            log.debug("Fixed " +
+                    "\n departureZonedDateTime {}" +
+                    "\n arrivalZonedDateTime {}", departureZonedDateTime, arrivalZonedDateTime);
+
+        }
+        return arrivalZonedDateTime;
+    }
+
+    private ZonedDateTime getDateTime(String aiport, int year, int month, int dayOfMonth, String airportTime) {
         LocalDate ld = LocalDate.of(year, month, dayOfMonth);
         LocalTime lt = LocalTime.parse(airportTime);
         LocalDateTime ldt = LocalDateTime.of(ld, lt);
-        //can be start of new day
-        if (isArrival && lt.getHour() == 0) {
-            ldt = ldt.plusDays(1);
-        }
         String timeZoneID = timeZoneIATAMapper.findTimeZoneID(aiport);
         return ZonedDateTime.of(ldt, ZoneId.of(timeZoneID));
     }

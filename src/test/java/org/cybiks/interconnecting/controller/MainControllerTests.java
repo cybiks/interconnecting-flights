@@ -15,6 +15,7 @@
  */
 package org.cybiks.interconnecting.controller;
 
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,21 +38,39 @@ public class MainControllerTests {
     @Autowired
     private MockMvc mockMvc;
 
-    ////for instance: http://localhost:8080/cybiks/interconnections?departure=DUB&arrival=WRO&departureDateTime=2019-06-12T00:00&arrivalDateTime=2019-06-12T23:00
+    ////for instance: http://localhost:8080/cybiks/interconnections?departure=DUB&arrival=WRO&departureDateTime=2019-07-12T00:00&arrivalDateTime=2019-07-12T23:00
     @Test
     public void oneDayTest() throws Exception {
 
         this.mockMvc.perform(get("/interconnections")
                 .param("departure", "DUB")
                 .param("arrival", "WRO")
-                .param("departureDateTime", "2019-06-12T00:00")
-                .param("arrivalDateTime", "2019-06-12T23:00")).andDo(print())
+                .param("departureDateTime", "2019-07-12T00:00")
+                .param("arrivalDateTime", "2019-07-12T23:00")).andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].stops").value("0"))
                 .andExpect(jsonPath("$[0].legs[0].departureAirport").value("DUB"))
                 .andExpect(jsonPath("$[0].legs[0].arrivalAirport").value("WRO"))
-                .andExpect(jsonPath("$[0].legs[0].departureDateTime").value("2019-06-12T16:50:00"))
-                .andExpect(jsonPath("$[0].legs[0].arrivalDateTime").value("2019-06-12T19:25:00"));
+                .andExpect(jsonPath("$[0].legs[0].departureDateTime").value("2019-07-12T08:45:00"))
+                .andExpect(jsonPath("$[0].legs[0].arrivalDateTime").value("2019-07-12T11:20:00"));
+    }
+
+    @Test
+    public void noDirectFlights() throws Exception {
+
+        this.mockMvc.perform(get("/interconnections")
+                .param("departure", "DUB")
+                .param("arrival", "WRO")
+                .param("departureDateTime", "2019-07-13T00:00")
+                .param("arrivalDateTime", "2019-07-13T23:00")).andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].stops").value("0"))
+                .andExpect(jsonPath("$[0].legs").value(Matchers.hasSize(0)))
+                .andExpect(jsonPath("$[1].stops").value("1"))
+                .andExpect(jsonPath("$[1].legs[0].departureAirport").value("DUB"))
+                .andExpect(jsonPath("$[1].legs[0].arrivalAirport").value("CIA"))
+                .andExpect(jsonPath("$[1].legs[0].departureDateTime").value("2019-07-13T05:50:00"))
+                .andExpect(jsonPath("$[1].legs[0].arrivalDateTime").value("2019-07-13T08:55:00"));
     }
 
     @Test
@@ -72,8 +91,8 @@ public class MainControllerTests {
         this.mockMvc.perform(get("/interconnections")
                 .param("departure", "DUB")
                 .param("arrival", "WRO")
-                .param("departureDateTime", "2019-06-12T00:00")
-                .param("arrivalDateTime", "2019-06-15T23:00"))
+                .param("departureDateTime", "2019-07-12T00:00")
+                .param("arrivalDateTime", "2019-07-15T23:00"))
                 .andDo(print()).andExpect(status().isOk());
     }
 
